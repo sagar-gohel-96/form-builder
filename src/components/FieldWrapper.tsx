@@ -1,6 +1,6 @@
-import { Field } from "@chakra-ui/react";
-import React from "react";
-import { get, type FormState } from "react-hook-form";
+import { Field } from '@chakra-ui/react';
+import React from 'react';
+import { get, type FormState } from 'react-hook-form';
 
 interface FieldWrapperProps {
   label: string;

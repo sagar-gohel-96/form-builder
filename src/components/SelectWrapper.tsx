@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
-import { Controller, type Control, type FormState, get } from "react-hook-form";
-import { Select, Portal, Field, createListCollection } from "@chakra-ui/react";
+import React, { useMemo } from 'react';
+import { Controller, type Control, type FormState, get } from 'react-hook-form';
+import { Select, Portal, Field, createListCollection } from '@chakra-ui/react';
 
 interface SelectOption {
   label: string;
@@ -17,7 +17,7 @@ interface SelectWrapperProps {
   placeholder?: string;
   helperText?: string;
   width?: string;
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export const SelectFieldWrapper: React.FC<SelectWrapperProps> = ({
@@ -29,8 +29,8 @@ export const SelectFieldWrapper: React.FC<SelectWrapperProps> = ({
   isRequired = false,
   placeholder,
   helperText,
-  width = "100%",
-  size = "md",
+  width = '100%',
+  size = 'md',
 }) => {
   const collection = useMemo(() => {
     return createListCollection({
@@ -53,7 +53,7 @@ export const SelectFieldWrapper: React.FC<SelectWrapperProps> = ({
           collection={collection}
           value={field.value ? [field.value] : []}
           onValueChange={(details) => {
-            field.onChange(details.value[0] || "");
+            field.onChange(details.value[0] || '');
           }}
           width={width}
           size={size}
@@ -94,7 +94,7 @@ export const SelectFieldWrapper: React.FC<SelectWrapperProps> = ({
             <Field.HelperText>{helperText}</Field.HelperText>
           )}
           {shouldShowError && (
-            <Field.ErrorText>This is an error</Field.ErrorText>
+            <Field.ErrorText>{error?.message}</Field.ErrorText>
           )}
         </Select.Root>
       )}

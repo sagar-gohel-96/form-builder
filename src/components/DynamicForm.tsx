@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 import {
   useForm,
   useFieldArray,
   Controller,
   type FieldValues,
-} from "react-hook-form";
+} from 'react-hook-form';
 import {
   Box,
   Button,
@@ -18,12 +18,12 @@ import {
   VStack,
   HStack,
   IconButton,
-} from "@chakra-ui/react";
-import { FieldWrapper } from "./FieldWrapper";
-import { PiMinusCircleDuotone, PiPlusCircleDuotone } from "react-icons/pi";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { SelectFieldWrapper } from "./SelectWrapper";
-import generateZodSchema from "../utils/generateZodSchema";
+} from '@chakra-ui/react';
+import { FieldWrapper } from './FieldWrapper';
+import { PiMinusCircleDuotone, PiPlusCircleDuotone } from 'react-icons/pi';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { SelectFieldWrapper } from './SelectWrapper';
+import generateZodSchema from '../utils/generateZodSchema';
 
 export interface FieldConfig {
   name: string;
@@ -58,130 +58,23 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   config,
   onSubmit: onSubmitProp,
 }) => {
-  // const generateZodSchema = (fields: FieldConfig[]): z.ZodType<any> => {
-  //   const schemaFields: any = {};
-
-  //   fields.forEach((field) => {
-  //     let fieldSchema: any;
-
-  //     switch (field.type) {
-  //       case "text":
-  //       case "email":
-  //       case "password":
-  //       case "textarea":
-  //         fieldSchema = z.string();
-  //         if (field.validation?.minLength) {
-  //           fieldSchema = fieldSchema.min(field.validation.minLength, {
-  //             message: `Minimum ${field.validation.minLength} characters required`,
-  //           });
-  //         }
-  //         if (field.validation?.maxLength) {
-  //           fieldSchema = fieldSchema.max(field.validation.maxLength, {
-  //             message: `Maximum ${field.validation.maxLength} characters allowed`,
-  //           });
-  //         }
-  //         if (field.type === "email") {
-  //           fieldSchema = fieldSchema.email({
-  //             message: "Please enter a valid email address",
-  //           });
-  //         }
-  //         if (field.validation?.pattern) {
-  //           fieldSchema = fieldSchema.regex(
-  //             new RegExp(field.validation.pattern),
-  //             {
-  //               message: "Please enter a valid format",
-  //             }
-  //           );
-  //         }
-  //         break;
-  //       case "number":
-  //         fieldSchema = z.coerce.number({
-  //           error: "Please enter a valid number",
-  //         });
-  //         if (field.validation?.min !== undefined) {
-  //           fieldSchema = fieldSchema.min(field.validation.min, {
-  //             message: `Minimum value is ${field.validation.min}`,
-  //           });
-  //         }
-  //         if (field.validation?.max !== undefined) {
-  //           fieldSchema = fieldSchema.max(field.validation.max, {
-  //             message: `Maximum value is ${field.validation.max}`,
-  //           });
-  //         }
-  //         break;
-  //       case "boolean":
-  //         fieldSchema = z.boolean();
-  //         break;
-  //       case "select":
-  //       case "radio":
-  //         fieldSchema = z.string();
-  //         break;
-  //       case "array":
-  //         if (field.fields) {
-  //           fieldSchema = z.array(generateZodSchema(field.fields));
-  //         } else {
-  //           fieldSchema = z.array(z.string().min(1, "This field is required"));
-  //         }
-
-  //         if (field.required) {
-  //           fieldSchema = fieldSchema.min(
-  //             1,
-  //             `At least one ${field.label.toLowerCase()} is required`
-  //           );
-  //         } else {
-  //           fieldSchema = fieldSchema.min(0);
-  //         }
-  //         break;
-  //       default:
-  //         fieldSchema = z.string();
-  //     }
-
-  //     // Handle required fields
-  //     if (!field.required && field.type !== "array") {
-  //       fieldSchema = fieldSchema.optional();
-  //     } else if (
-  //       field.required &&
-  //       field.type !== "boolean" &&
-  //       field.type !== "array"
-  //     ) {
-  //       if (
-  //         field.type === "string" ||
-  //         field.type === "text" ||
-  //         field.type === "email" ||
-  //         field.type === "password" ||
-  //         field.type === "textarea"
-  //       ) {
-  //         fieldSchema = fieldSchema.min(1, `${field.label} is required`);
-  //       }
-  //     } else if (field.required && field.type === "boolean") {
-  //       fieldSchema = fieldSchema.refine((val: any) => val === true, {
-  //         message: `${field.label} must be checked`,
-  //       });
-  //     }
-
-  //     schemaFields[field.name] = fieldSchema;
-  //   });
-
-  //   return z.object(schemaFields);
-  // };
-
   const schema = generateZodSchema(config.fields);
 
   const generateDefaultValues = (fields: FieldConfig[]): any => {
     const defaults: any = {};
     fields.forEach((field) => {
       switch (field.type) {
-        case "boolean":
+        case 'boolean':
           defaults[field.name] = false;
           break;
-        case "array":
+        case 'array':
           defaults[field.name] = [];
           break;
-        case "number":
-          defaults[field.name] = "";
+        case 'number':
+          defaults[field.name] = '';
           break;
         default:
-          defaults[field.name] = "";
+          defaults[field.name] = '';
       }
     });
     return defaults;
@@ -190,30 +83,30 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   const { control, handleSubmit, register, formState } = useForm<FieldValues>({
     resolver: zodResolver(schema as any),
     defaultValues: generateDefaultValues(config.fields),
-    mode: "onChange",
+    mode: 'onChange',
   });
 
   const onSubmit = async (data: any) => {
     try {
-      console.log("Form submitted:", data);
+      console.log('Form submitted:', data);
       if (onSubmitProp) {
         onSubmitProp(data);
       }
     } catch (error) {
-      console.error("Submission failed:", error);
+      console.error('Submission failed:', error);
     }
   };
 
   const renderField = (
     field: FieldConfig,
-    path: string = ""
+    path: string = ''
   ): React.ReactNode => {
     const fieldName = path ? `${path}.${field.name}` : field.name;
 
     switch (field.type) {
-      case "text":
-      case "email":
-      case "password":
+      case 'text':
+      case 'email':
+      case 'password':
         return (
           <FieldWrapper
             key={fieldName}
@@ -234,7 +127,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case "number":
+      case 'number':
         return (
           <FieldWrapper
             key={fieldName}
@@ -255,7 +148,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case "textarea":
+      case 'textarea':
         return (
           <FieldWrapper
             key={fieldName}
@@ -276,7 +169,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case "select":
+      case 'select':
         return (
           <SelectFieldWrapper
             name={field.name}
@@ -290,7 +183,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case "boolean":
+      case 'boolean':
         return (
           <FieldWrapper
             key={fieldName}
@@ -316,7 +209,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case "radio":
+      case 'radio':
         return (
           <FieldWrapper
             key={fieldName}
@@ -349,7 +242,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           />
         );
 
-      case "array":
+      case 'array':
         return (
           <ArrayField
             key={fieldName}
@@ -421,20 +314,20 @@ const ArrayField: React.FC<ArrayFieldProps> = ({
       const newItem: any = {};
       field.fields.forEach((subField) => {
         switch (subField.type) {
-          case "boolean":
+          case 'boolean':
             newItem[subField.name] = false;
             break;
-          case "number":
-            newItem[subField.name] = "";
+          case 'number':
+            newItem[subField.name] = '';
             break;
           default:
-            newItem[subField.name] = "";
+            newItem[subField.name] = '';
         }
       });
       append(newItem);
     } else {
       // Array of primitives
-      append("");
+      append('');
     }
   };
 
@@ -449,7 +342,7 @@ const ArrayField: React.FC<ArrayFieldProps> = ({
         <VStack align="stretch">
           <HStack justify="space-between" align="center">
             <Text fontSize="sm" color="gray.600">
-              {fields.length} item{fields.length !== 1 ? "s" : ""}
+              {fields.length} item{fields.length !== 1 ? 's' : ''}
             </Text>
             <Button
               onClick={addItem}
@@ -492,10 +385,10 @@ const ArrayField: React.FC<ArrayFieldProps> = ({
                     const subFieldName = `${fieldName}.${index}.${subField.name}`;
 
                     switch (subField.type) {
-                      case "text":
-                      case "email":
-                      case "password":
-                      case "number":
+                      case 'text':
+                      case 'email':
+                      case 'password':
+                      case 'number':
                         return (
                           <FieldWrapper
                             key={subFieldName}
@@ -517,7 +410,7 @@ const ArrayField: React.FC<ArrayFieldProps> = ({
                           />
                         );
 
-                      case "textarea":
+                      case 'textarea':
                         return (
                           <FieldWrapper
                             key={subFieldName}
@@ -539,7 +432,7 @@ const ArrayField: React.FC<ArrayFieldProps> = ({
                           />
                         );
 
-                      case "boolean":
+                      case 'boolean':
                         return (
                           <FieldWrapper
                             key={subFieldName}
@@ -567,7 +460,7 @@ const ArrayField: React.FC<ArrayFieldProps> = ({
                           />
                         );
 
-                      case "select":
+                      case 'select':
                         return (
                           <SelectFieldWrapper
                             name={field.name}
