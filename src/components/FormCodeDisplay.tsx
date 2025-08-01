@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Copy, Check, Code, Download, FileText } from "lucide-react";
+import { Button, Clipboard, Tabs, Code } from "@chakra-ui/react";
+import { FIELD_WRAPPER, SELECT_WRAPPER } from "../utils/componentsText";
 
 // Types for the form configuration
 interface FieldConfig {
@@ -31,10 +32,42 @@ interface FormCodeGeneratorProps {
 }
 
 const FormCodeGenerator: React.FC<FormCodeGeneratorProps> = ({ config }) => {
-  const [copied, setCopied] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"component" | "schema" | "types">(
-    "component"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "component" | "schema" | "types" | string
+  >("form-code");
+
+  const requiredPackages = [
+    {
+      name: "@chakra-ui/react",
+      version: "latest",
+      description: "Simple, modular and accessible UI components",
+    },
+    {
+      name: "@emotion/react",
+      version: "latest",
+      description: "Required peer dependency for Chakra UI",
+    },
+    {
+      name: "@emotion/styled",
+      version: "latest",
+      description: "Required peer dependency for Chakra UI",
+    },
+    {
+      name: "react-hook-form",
+      version: "^7.53.0",
+      description: "Form state management and validation",
+    },
+    {
+      name: "@hookform/resolvers",
+      version: "^3.9.0",
+      description: "Resolver for Zod schema validation",
+    },
+    {
+      name: "zod",
+      version: "^3.23.8",
+      description: "TypeScript-first schema validation",
+    },
+  ];
 
   // Generate Zod Schema Code
   const generateZodSchemaCode = () => {
@@ -631,181 +664,191 @@ ${generateFieldComponents()}
 export default ${componentName};`;
   };
 
-  const copyToClipboard = async (text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(type);
-      setTimeout(() => setCopied(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
-    }
-  };
-
-  const downloadFile = (content: string, filename: string) => {
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const getActiveContent = () => {
-    switch (activeTab) {
-      case "component":
-        return generateComponentCode();
-      case "schema":
-        return generateZodSchemaCode();
-      case "types":
-        return generateTypesCode();
-      default:
-        return "";
-    }
-  };
-
-  const getFileName = () => {
-    const componentName = config.title.replace(/\s+/g, "");
-    switch (activeTab) {
-      case "component":
-        return `${componentName}.tsx`;
-      case "schema":
-        return "schema.ts";
-      case "types":
-        return "types.ts";
-      default:
-        return "code.tsx";
-    }
-  };
-
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 bg-black rounded-lg shadow-lg">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-          <Code className="w-6 h-6" />
-          Generated Form Code
-        </h2>
-        <p className="text-gray-600">
-          Copy the generated code for your form: <strong>{config.title}</strong>
-        </p>
-      </div>
+    <div className="w-full max-w-6xl mx-auto p-6 rounded-lg shadow-lg">
+      <Tabs.Root
+        value={activeTab}
+        onValueChange={(e) => setActiveTab(e.value)}
+        className="w-full"
+      >
+        <Tabs.List className="grid w-full grid-cols-4">
+          <Tabs.Trigger value="form-code">Form Code</Tabs.Trigger>
+          <Tabs.Trigger value="components">Components</Tabs.Trigger>
+          <Tabs.Trigger value="schema">Schema</Tabs.Trigger>
+          <Tabs.Trigger value="types">Types</Tabs.Trigger>
+          <Tabs.Trigger value="setup">Setup</Tabs.Trigger>
+        </Tabs.List>
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 mb-4 bg-black p-1 rounded-lg">
-        <button
-          onClick={() => setActiveTab("component")}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === "component"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
-        >
-          <FileText className="w-4 h-4 inline mr-2" />
-          Component
-        </button>
-        <button
-          onClick={() => setActiveTab("schema")}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === "schema"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
-        >
-          <FileText className="w-4 h-4 inline mr-2" />
-          Schema
-        </button>
-        <button
-          onClick={() => setActiveTab("types")}
-          className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === "types"
-              ? "bg-white text-blue-600 shadow-sm"
-              : "text-gray-600 hover:text-gray-800"
-          }`}
-        >
-          <FileText className="w-4 h-4 inline mr-2" />
-          Types
-        </button>
-      </div>
-
-      {/* Code Display */}
-      <div className="relative">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-semibold text-gray-700">{getFileName()}</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={() => copyToClipboard(getActiveContent(), activeTab)}
-              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              {copied === activeTab ? (
-                <Check className="w-4 h-4" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
-              {copied === activeTab ? "Copied!" : "Copy Code"}
-            </button>
-            <button
-              onClick={() => downloadFile(getActiveContent(), getFileName())}
-              className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </button>
+        <Tabs.Content value="form-code">
+          <div className="flex justify-between items-center !p-2 !mb-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Form Code</h2>
+              <p className="text-gray-600 mb-4">
+                Copy the generated code for your form:{" "}
+                <strong>{config.title}</strong>
+              </p>
+            </div>
+            <Clipboard.Root value={generateComponentCode()} timeout={1000}>
+              <Clipboard.Trigger asChild>
+                <Button variant="surface" size="sm">
+                  <Clipboard.Indicator />
+                  <Clipboard.CopyText />
+                </Button>
+              </Clipboard.Trigger>
+            </Clipboard.Root>
           </div>
-        </div>
+          <div className="h-80 overflow-auto">
+            <pre>
+              <Code size={"lg"} className="!p-6 w-full overflow-auto ">
+                {generateComponentCode()}
+              </Code>
+            </pre>
+          </div>
+        </Tabs.Content>
 
-        <div className="bg-gray-900 rounded-lg overflow-hidden">
-          <pre className="text-sm text-gray-100 p-4 overflow-x-auto max-h-96">
-            <code>{getActiveContent()}</code>
-          </pre>
-        </div>
-      </div>
+        <Tabs.Content value="components">
+          <div className="flex justify-between items-center !p-2 !mb-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">
+                FieldWrapper Component
+              </h2>
+              <p className="text-gray-600 mb-4">Copy the components.</p>
+            </div>
+            <Clipboard.Root value={FIELD_WRAPPER} timeout={1000}>
+              <Clipboard.Trigger asChild>
+                <Button variant="surface" size="sm">
+                  <Clipboard.Indicator />
+                  <Clipboard.CopyText />
+                </Button>
+              </Clipboard.Trigger>
+            </Clipboard.Root>
+          </div>
+          <div className="h-80 overflow-auto">
+            <pre>
+              <Code size={"lg"} className="!p-6 w-full overflow-auto ">
+                {FIELD_WRAPPER}
+              </Code>
+            </pre>
+          </div>
 
-      {/* Instructions */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h4 className="font-semibold text-blue-900 mb-2">
-          Implementation Instructions:
-        </h4>
-        <ol className="list-decimal list-inside text-blue-800 space-y-1 text-sm">
-          <li>Copy the component code to create your form component</li>
-          <li>Copy the schema code for validation</li>
-          <li>
-            Make sure you have your existing <code>FieldWrapper</code> and{" "}
-            <code>SelectFieldWrapper</code> components
-          </li>
-          <li>
-            Install required dependencies:{" "}
-            <code>react-hook-form @hookform/resolvers zod</code>
-          </li>
-          <li>Import and use the form component in your application</li>
-          <li>Handle form submission in the parent component</li>
-        </ol>
-      </div>
+          <div className="flex justify-between items-center !p-2 !mb-4 !mt-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">
+                SelectFieldWrapper Component
+              </h2>
+              <p className="text-gray-600 mb-4">Copy the components.</p>
+            </div>
+            <Clipboard.Root value={SELECT_WRAPPER} timeout={1000}>
+              <Clipboard.Trigger asChild>
+                <Button variant="surface" size="sm">
+                  <Clipboard.Indicator />
+                  <Clipboard.CopyText />
+                </Button>
+              </Clipboard.Trigger>
+            </Clipboard.Root>
+          </div>
+          <div className="h-80 overflow-auto">
+            <pre>
+              <Code size={"lg"} className="!p-6 w-full overflow-auto ">
+                {SELECT_WRAPPER}
+              </Code>
+            </pre>
+          </div>
+        </Tabs.Content>
 
-      {/* Usage Example */}
-      <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-        <h4 className="font-semibold text-green-900 mb-2">Usage Example:</h4>
-        <pre className="text-sm bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
-          {`import ${config.title.replace(
-            /\s+/g,
-            ""
-          )} from './${config.title.replace(/\s+/g, "")}';
+        <Tabs.Content value="schema">
+          <div className="flex justify-between items-center !p-2 !mb-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Zod Schema</h2>
+              <p className="text-gray-600 mb-4">
+                Copy the generated Zod schema for validation.
+              </p>
+            </div>
+            <Clipboard.Root value={generateZodSchemaCode()} timeout={1000}>
+              <Clipboard.Trigger asChild>
+                <Button variant="surface" size="sm">
+                  <Clipboard.Indicator />
+                  <Clipboard.CopyText />
+                </Button>
+              </Clipboard.Trigger>
+            </Clipboard.Root>
+          </div>
+          <div className="h-80 overflow-auto">
+            <pre>
+              <Code size={"lg"} className="!p-6 w-full overflow-auto ">
+                {generateZodSchemaCode()}
+              </Code>
+            </pre>
+          </div>
+        </Tabs.Content>
 
-function App() {
-  const handleFormSubmit = (data) => {
-    console.log('Form data:', data);
-    // Handle form submission
-  };
+        <Tabs.Content value="types">
+          <div className="flex justify-between items-center !p-2 !mb-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Types</h2>
+              <p className="text-gray-600 mb-4">
+                Copy the generated TypeScript types.
+              </p>
+            </div>
+            <Clipboard.Root value={generateTypesCode()} timeout={1000}>
+              <Clipboard.Trigger asChild>
+                <Button variant="surface" size="sm">
+                  <Clipboard.Indicator />
+                  <Clipboard.CopyText />
+                </Button>
+              </Clipboard.Trigger>
+            </Clipboard.Root>
+          </div>
+          <div className="h-80 overflow-auto">
+            <pre>
+              <Code size={"lg"} className="!p-6 w-full overflow-auto ">
+                {generateTypesCode()}
+              </Code>
+            </pre>
+          </div>
+        </Tabs.Content>
 
-  return (
-    <div>
-      <${config.title.replace(/\s+/g, "")} onSubmit={handleFormSubmit} />
-    </div>
-  );
-}`}
-        </pre>
-      </div>
+        <Tabs.Content value="setup" className="!p-6">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Required Packages</h3>
+            </div>
+            <div className="space-y-3">
+              {requiredPackages.map((pkg, index) => (
+                <div
+                  key={index}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg !p-4"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 dark:text-white">
+                        {pkg.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {pkg.description}
+                      </p>
+                      <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded mt-2 inline-block">
+                        npm install {pkg.name}@{pkg.version}
+                      </code>
+                    </div>
+                    <Clipboard.Root
+                      value={`npm install ${pkg.name}`}
+                      timeout={1000}
+                    >
+                      <Clipboard.Trigger asChild>
+                        <Button variant="surface" size="sm">
+                          <Clipboard.Indicator />
+                          <Clipboard.CopyText />
+                        </Button>
+                      </Clipboard.Trigger>
+                    </Clipboard.Root>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Tabs.Content>
+      </Tabs.Root>
     </div>
   );
 };
@@ -813,7 +856,7 @@ function App() {
 // Example usage component
 const FormCodeDisplay = ({ config }: { config: FormConfig }) => {
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen py-8">
       <FormCodeGenerator config={config} />
     </div>
   );
