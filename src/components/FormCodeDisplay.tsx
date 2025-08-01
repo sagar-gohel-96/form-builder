@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Copy, Check, Code, Download, FileText } from 'lucide-react';
+import React, { useState } from "react";
+import { Copy, Check, Code, Download, FileText } from "lucide-react";
 
 // Types for the form configuration
 interface FieldConfig {
@@ -32,36 +32,36 @@ interface FormCodeGeneratorProps {
 
 const FormCodeGenerator: React.FC<FormCodeGeneratorProps> = ({ config }) => {
   const [copied, setCopied] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'component' | 'schema' | 'types'>(
-    'component'
+  const [activeTab, setActiveTab] = useState<"component" | "schema" | "types">(
+    "component"
   );
 
   // Generate Zod Schema Code
   const generateZodSchemaCode = () => {
     const generateFieldValidation = (field: FieldConfig): string => {
-      let validation = '';
+      let validation = "";
 
       switch (field.type) {
-        case 'text':
-        case 'email':
-        case 'password':
-        case 'textarea':
-          validation = 'z.string()';
+        case "text":
+        case "email":
+        case "password":
+        case "textarea":
+          validation = "z.string()";
           if (field.validation?.minLength) {
             validation += `.min(${field.validation.minLength}, "Minimum ${field.validation.minLength} characters required")`;
           }
           if (field.validation?.maxLength) {
             validation += `.max(${field.validation.maxLength}, "Maximum ${field.validation.maxLength} characters allowed")`;
           }
-          if (field.type === 'email') {
+          if (field.type === "email") {
             validation += '.email("Invalid email format")';
           }
           if (field.validation?.pattern) {
             validation += `.regex(/${field.validation.pattern}/, "Invalid format")`;
           }
           break;
-        case 'number':
-          validation = 'z.coerce.number()';
+        case "number":
+          validation = "z.coerce.number()";
           if (field.validation?.min !== undefined) {
             validation += `.min(${field.validation.min}, "Minimum value is ${field.validation.min}")`;
           }
@@ -69,38 +69,38 @@ const FormCodeGenerator: React.FC<FormCodeGeneratorProps> = ({ config }) => {
             validation += `.max(${field.validation.max}, "Maximum value is ${field.validation.max}")`;
           }
           break;
-        case 'boolean':
-          validation = 'z.boolean()';
+        case "boolean":
+          validation = "z.boolean()";
           break;
-        case 'select':
-        case 'radio':
+        case "select":
+        case "radio":
           if (field.options && field.options.length > 0) {
             validation = `z.enum([${field.options
               .map((opt) => `"${opt}"`)
-              .join(', ')}])`;
+              .join(", ")}])`;
           } else {
-            validation = 'z.string()';
+            validation = "z.string()";
           }
           break;
-        case 'array':
+        case "array":
           if (field.fields) {
             const objectFields = field.fields
               .map(
                 (subField) =>
                   `    ${subField.name}: ${generateFieldValidation(subField)}`
               )
-              .join(',\n');
+              .join(",\n");
             validation = `z.array(z.object({\n${objectFields}\n  }))`;
           } else {
-            validation = 'z.array(z.string())';
+            validation = "z.array(z.string())";
           }
           break;
         default:
-          validation = 'z.string()';
+          validation = "z.string()";
       }
 
       if (!field.required) {
-        validation += '.optional()';
+        validation += ".optional()";
       }
 
       return validation;
@@ -109,85 +109,85 @@ const FormCodeGenerator: React.FC<FormCodeGeneratorProps> = ({ config }) => {
     return `import { z } from 'zod';
 
 export const ${config.title
-      .replace(/\s+/g, '')
+      .replace(/\s+/g, "")
       .toLowerCase()}Schema = z.object({
 ${config.fields
   .map((field) => `  ${field.name}: ${generateFieldValidation(field)}`)
-  .join(',\n')}
+  .join(",\n")}
 });
 
 export type ${config.title.replace(
       /\s+/g,
-      ''
+      ""
     )}FormData = z.infer<typeof ${config.title
-      .replace(/\s+/g, '')
+      .replace(/\s+/g, "")
       .toLowerCase()}Schema>;`;
   };
 
   // Generate Types Code
   const generateTypesCode = () => {
-    return `export interface ${config.title.replace(/\s+/g, '')}FormData {
+    return `export interface ${config.title.replace(/\s+/g, "")}FormData {
 ${config.fields
   .map((field) => {
-    let type = 'string';
+    let type = "string";
     switch (field.type) {
-      case 'number':
-        type = 'number';
+      case "number":
+        type = "number";
         break;
-      case 'boolean':
-        type = 'boolean';
+      case "boolean":
+        type = "boolean";
         break;
-      case 'select':
-      case 'radio':
+      case "select":
+      case "radio":
         if (field.options && field.options.length > 0) {
-          type = field.options.map((opt) => `"${opt}"`).join(' | ');
+          type = field.options.map((opt) => `"${opt}"`).join(" | ");
         }
         break;
-      case 'array':
+      case "array":
         if (field.fields) {
           const subTypes = field.fields
             .map((subField) => {
-              let subType = 'string';
-              if (subField.type === 'number') subType = 'number';
-              if (subField.type === 'boolean') subType = 'boolean';
+              let subType = "string";
+              if (subField.type === "number") subType = "number";
+              if (subField.type === "boolean") subType = "boolean";
               return `${subField.name}: ${subType}`;
             })
-            .join('; ');
+            .join("; ");
           type = `Array<{ ${subTypes} }>`;
         } else {
-          type = 'string[]';
+          type = "string[]";
         }
         break;
     }
-    return `  ${field.name}${field.required ? '' : '?'}: ${type};`;
+    return `  ${field.name}${field.required ? "" : "?"}: ${type};`;
   })
-  .join('\n')}
+  .join("\n")}
 }`;
   };
 
   // Generate Main Component Code
   const generateComponentCode = () => {
-    const componentName = config.title.replace(/\s+/g, '');
-    const formName = config.title.replace(/\s+/g, '').toLowerCase();
+    const componentName = config.title.replace(/\s+/g, "");
+    const formName = config.title.replace(/\s+/g, "").toLowerCase();
 
     const generateDefaultValues = () => {
       const defaults = config.fields
         .map((field) => {
           let defaultValue = "''";
           switch (field.type) {
-            case 'boolean':
-              defaultValue = 'false';
+            case "boolean":
+              defaultValue = "false";
               break;
-            case 'array':
-              defaultValue = '[]';
+            case "array":
+              defaultValue = "[]";
               break;
-            case 'number':
-              defaultValue = 'undefined';
+            case "number":
+              defaultValue = "undefined";
               break;
           }
           return `    ${field.name}: ${defaultValue}`;
         })
-        .join(',\n');
+        .join(",\n");
       return defaults;
     };
 
@@ -197,15 +197,15 @@ ${config.fields
           const fieldName = field.name;
 
           switch (field.type) {
-            case 'text':
-            case 'email':
-            case 'password':
+            case "text":
+            case "email":
+            case "password":
               return `        <FieldWrapper
           label="${field.label}"
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <Input
               type="${field.type}"
@@ -217,13 +217,13 @@ ${config.fields
           }
         />`;
 
-            case 'number':
+            case "number":
               return `        <FieldWrapper
           label="${field.label}"
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <Input
               type="number"
@@ -235,13 +235,13 @@ ${config.fields
           }
         />`;
 
-            case 'textarea':
+            case "textarea":
               return `        <FieldWrapper
           label="${field.label}"
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <Textarea
               {...register('${fieldName}')}
@@ -253,27 +253,27 @@ ${config.fields
           }
         />`;
 
-            case 'select':
+            case "select":
               return `        <SelectFieldWrapper
           name="${fieldName}"
           label="${field.label}"
           control={control}
           formState={formState}
           options={[${
-            field.options?.map((opt) => `"${opt}"`).join(', ') || ''
+            field.options?.map((opt) => `"${opt}"`).join(", ") || ""
           }]}
           isRequired={${field.required || false}}
-          placeholder="${field.placeholder || 'Select an option'}"
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          placeholder="${field.placeholder || "Select an option"}"
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
         />`;
 
-            case 'boolean':
+            case "boolean":
               return `        <FieldWrapper
           label="${field.label}"
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <Controller
               name="${fieldName}"
@@ -290,13 +290,13 @@ ${config.fields
           }
         />`;
 
-            case 'radio':
+            case "radio":
               return `        <FieldWrapper
           label="${field.label}"
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <Controller
               name="${fieldName}"
@@ -317,7 +317,7 @@ ${config.fields
                       <RadioGroup.ItemText>${option}</RadioGroup.ItemText>
                     </RadioGroup.Item>`
                         )
-                        .join('\n                    ') || ''
+                        .join("\n                    ") || ""
                     }
                   </Stack>
                 </RadioGroup.Root>
@@ -326,16 +326,16 @@ ${config.fields
           }
         />`;
 
-            case 'array':
+            case "array":
               if (field.fields) {
                 // Array of objects
                 const subFields = field.fields
                   .map((subField) => {
                     switch (subField.type) {
-                      case 'text':
-                      case 'email':
-                      case 'password':
-                      case 'number':
+                      case "text":
+                      case "email":
+                      case "password":
+                      case "number":
                         return `                      <FieldWrapper
                         key={\`${fieldName}.\${index}.${subField.name}\`}
                         label="${subField.label}"
@@ -356,7 +356,7 @@ ${config.fields
                           />
                         }
                       />`;
-                      case 'textarea':
+                      case "textarea":
                         return `                      <FieldWrapper
                         key={\`${fieldName}.\${index}.${subField.name}\`}
                         label="${subField.label}"
@@ -377,7 +377,7 @@ ${config.fields
                           />
                         }
                       />`;
-                      case 'boolean':
+                      case "boolean":
                         return `                      <FieldWrapper
                         key={\`${fieldName}.\${index}.${subField.name}\`}
                         label="${subField.label}"
@@ -401,17 +401,17 @@ ${config.fields
                         }
                       />`;
                       default:
-                        return '';
+                        return "";
                     }
                   })
-                  .join('\n');
+                  .join("\n");
 
                 return `        <FieldWrapper
           label="${field.label}"
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <VStack align="stretch">
               <HStack justify="space-between" align="center">
@@ -422,11 +422,11 @@ ${config.fields
                   onClick={() => ${fieldName}Append({${field.fields
                   .map((sf) => {
                     let defaultVal = "''";
-                    if (sf.type === 'boolean') defaultVal = 'false';
-                    if (sf.type === 'number') defaultVal = '0';
+                    if (sf.type === "boolean") defaultVal = "false";
+                    if (sf.type === "number") defaultVal = "0";
                     return `${sf.name}: ${defaultVal}`;
                   })
-                  .join(', ')}})}
+                  .join(", ")}})}
                   size="sm"
                   colorScheme="green"
                   variant="outline"
@@ -483,7 +483,7 @@ ${subFields}
           name="${fieldName}"
           formState={formState}
           isRequired={${field.required || false}}
-          ${field.helperText ? `helperText="${field.helperText}"` : ''}
+          ${field.helperText ? `helperText="${field.helperText}"` : ""}
           field={
             <VStack align="stretch">
               <HStack justify="space-between" align="center">
@@ -535,22 +535,22 @@ ${subFields}
               }
 
             default:
-              return '';
+              return "";
           }
         })
-        .join('\n\n');
+        .join("\n\n");
     };
 
     const generateArrayHooks = () => {
       return config.fields
-        .filter((field) => field.type === 'array')
+        .filter((field) => field.type === "array")
         .map((field) => {
           return `  const { fields: ${field.name}Fields, append: ${field.name}Append, remove: ${field.name}Remove } = useFieldArray({
     control,
     name: '${field.name}',
   });`;
         })
-        .join('\n');
+        .join("\n");
     };
 
     return `import React from 'react';
@@ -637,14 +637,14 @@ export default ${componentName};`;
       setCopied(type);
       setTimeout(() => setCopied(null), 2000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      console.error("Failed to copy text: ", err);
     }
   };
 
   const downloadFile = (content: string, filename: string) => {
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
@@ -655,35 +655,35 @@ export default ${componentName};`;
 
   const getActiveContent = () => {
     switch (activeTab) {
-      case 'component':
+      case "component":
         return generateComponentCode();
-      case 'schema':
+      case "schema":
         return generateZodSchemaCode();
-      case 'types':
+      case "types":
         return generateTypesCode();
       default:
-        return '';
+        return "";
     }
   };
 
   const getFileName = () => {
-    const componentName = config.title.replace(/\s+/g, '');
+    const componentName = config.title.replace(/\s+/g, "");
     switch (activeTab) {
-      case 'component':
+      case "component":
         return `${componentName}.tsx`;
-      case 'schema':
-        return 'schema.ts';
-      case 'types':
-        return 'types.ts';
+      case "schema":
+        return "schema.ts";
+      case "types":
+        return "types.ts";
       default:
-        return 'code.tsx';
+        return "code.tsx";
     }
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className="w-full max-w-6xl mx-auto p-6 bg-black rounded-lg shadow-lg">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
           <Code className="w-6 h-6" />
           Generated Form Code
         </h2>
@@ -693,35 +693,35 @@ export default ${componentName};`;
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 mb-4 bg-gray-100 p-1 rounded-lg">
+      <div className="flex space-x-1 mb-4 bg-black p-1 rounded-lg">
         <button
-          onClick={() => setActiveTab('component')}
+          onClick={() => setActiveTab("component")}
           className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'component'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
+            activeTab === "component"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-800"
           }`}
         >
           <FileText className="w-4 h-4 inline mr-2" />
           Component
         </button>
         <button
-          onClick={() => setActiveTab('schema')}
+          onClick={() => setActiveTab("schema")}
           className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'schema'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
+            activeTab === "schema"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-800"
           }`}
         >
           <FileText className="w-4 h-4 inline mr-2" />
           Schema
         </button>
         <button
-          onClick={() => setActiveTab('types')}
+          onClick={() => setActiveTab("types")}
           className={`px-4 py-2 rounded-md font-medium transition-colors ${
-            activeTab === 'types'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
+            activeTab === "types"
+              ? "bg-white text-blue-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-800"
           }`}
         >
           <FileText className="w-4 h-4 inline mr-2" />
@@ -743,7 +743,7 @@ export default ${componentName};`;
               ) : (
                 <Copy className="w-4 h-4" />
               )}
-              {copied === activeTab ? 'Copied!' : 'Copy Code'}
+              {copied === activeTab ? "Copied!" : "Copy Code"}
             </button>
             <button
               onClick={() => downloadFile(getActiveContent(), getFileName())}
@@ -771,11 +771,11 @@ export default ${componentName};`;
           <li>Copy the component code to create your form component</li>
           <li>Copy the schema code for validation</li>
           <li>
-            Make sure you have your existing <code>FieldWrapper</code> and{' '}
+            Make sure you have your existing <code>FieldWrapper</code> and{" "}
             <code>SelectFieldWrapper</code> components
           </li>
           <li>
-            Install required dependencies:{' '}
+            Install required dependencies:{" "}
             <code>react-hook-form @hookform/resolvers zod</code>
           </li>
           <li>Import and use the form component in your application</li>
@@ -789,8 +789,8 @@ export default ${componentName};`;
         <pre className="text-sm bg-gray-900 text-gray-100 p-3 rounded overflow-x-auto">
           {`import ${config.title.replace(
             /\s+/g,
-            ''
-          )} from './${config.title.replace(/\s+/g, '')}';
+            ""
+          )} from './${config.title.replace(/\s+/g, "")}';
 
 function App() {
   const handleFormSubmit = (data) => {
@@ -800,7 +800,7 @@ function App() {
 
   return (
     <div>
-      <${config.title.replace(/\s+/g, '')} onSubmit={handleFormSubmit} />
+      <${config.title.replace(/\s+/g, "")} onSubmit={handleFormSubmit} />
     </div>
   );
 }`}
@@ -811,71 +811,10 @@ function App() {
 };
 
 // Example usage component
-const FormCodeDisplay = () => {
-  const exampleConfig: FormConfig = {
-    title: 'User Registration Form',
-    fields: [
-      {
-        name: 'firstName',
-        type: 'text',
-        label: 'First Name',
-        required: true,
-        placeholder: 'Enter your first name',
-        validation: { minLength: 2 },
-      },
-      {
-        name: 'email',
-        type: 'email',
-        label: 'Email Address',
-        required: true,
-        placeholder: 'Enter your email',
-      },
-      {
-        name: 'age',
-        type: 'number',
-        label: 'Age',
-        required: true,
-        validation: { min: 18, max: 100 },
-      },
-      {
-        name: 'country',
-        type: 'select',
-        label: 'Country',
-        required: true,
-        options: ['USA', 'Canada', 'UK', 'Australia'],
-      },
-      {
-        name: 'isSubscribed',
-        type: 'boolean',
-        label: 'Subscribe to newsletter',
-        required: false,
-      },
-      {
-        name: 'skills',
-        type: 'array',
-        label: 'Skills',
-        fields: [
-          {
-            name: 'name',
-            type: 'text',
-            label: 'Skill Name',
-            required: true,
-          },
-          {
-            name: 'level',
-            type: 'select',
-            label: 'Proficiency Level',
-            required: true,
-            options: ['Beginner', 'Intermediate', 'Advanced'],
-          },
-        ],
-      },
-    ],
-  };
-
+const FormCodeDisplay = ({ config }: { config: FormConfig }) => {
   return (
     <div className="min-h-screen bg-gray-100 py-8">
-      <FormCodeGenerator config={exampleConfig} />
+      <FormCodeGenerator config={config} />
     </div>
   );
 };

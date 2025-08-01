@@ -1,21 +1,21 @@
-import { useState } from 'react';
-import { Button, Tabs, Textarea } from '@chakra-ui/react';
-import DynamicForm from './DynamicForm';
-import Layout from './Layout';
-import FormCodeDisplay from './FormCodeDisplay';
+import { useState } from "react";
+import { Button, Tabs, Textarea } from "@chakra-ui/react";
+import DynamicForm from "./DynamicForm";
+import Layout from "./Layout";
+import FormCodeDisplay from "./FormCodeDisplay";
 
 const FormBuilder = () => {
-  const [jsonConfig, setJsonConfig] = useState('');
+  const [jsonConfig, setJsonConfig] = useState("");
   const [parsedConfig, setParsedConfig] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleGenerateForm = () => {
     try {
       const config = JSON.parse(jsonConfig);
       setParsedConfig(config);
-      setError('');
+      setError("");
     } catch (err) {
-      setError('Invalid JSON format');
+      setError("Invalid JSON format");
       setParsedConfig(null);
     }
   };
@@ -154,7 +154,7 @@ const FormBuilder = () => {
                   <DynamicForm config={parsedConfig} />
                 </Tabs.Content>
                 <Tabs.Content value="code" className="p-6">
-                  <FormCodeDisplay />
+                  <FormCodeDisplay config={parsedConfig} />
                 </Tabs.Content>
               </Tabs.Root>
             ) : (
