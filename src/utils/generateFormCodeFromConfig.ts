@@ -1,22 +1,22 @@
 export const generateFormCodeFromConfig = (config: any): string => {
-  const indent = (level = 2) => ' '.repeat(level);
+  const indent = (level = 2) => " ".repeat(level);
 
-  const generateFieldCode = (field: any, path = ''): string => {
+  const generateFieldCode = (field: any, path = ""): string => {
     const fieldName = path ? `${path}.${field.name}` : field.name;
     const label = field.label || field.name;
-    const isRequired = field.required ? 'isRequired' : '';
+    const isRequired = field.required ? "isRequired" : "";
     const placeholder = field.placeholder
       ? ` placeholder="${field.placeholder}"`
       : ` placeholder="Enter ${label.toLowerCase()}"`;
     const helperText = field.helperText
       ? ` helperText="${field.helperText}"`
-      : '';
+      : "";
 
     switch (field.type) {
-      case 'text':
-      case 'email':
-      case 'password':
-      case 'number':
+      case "text":
+      case "email":
+      case "password":
+      case "number":
         return `${indent(2)}<FieldWrapper\n${indent(
           4
         )}key="${fieldName}"\n${indent(4)}label="${label}"\n${indent(
@@ -31,7 +31,7 @@ export const generateFormCodeFromConfig = (config: any): string => {
           4
         )}}\n${indent(2)}/>`;
 
-      case 'textarea':
+      case "textarea":
         return `${indent(2)}<FieldWrapper\n${indent(
           4
         )}key="${fieldName}"\n${indent(4)}label="${label}"\n${indent(
@@ -46,7 +46,7 @@ export const generateFormCodeFromConfig = (config: any): string => {
           4
         )}}\n${indent(2)}/>`;
 
-      case 'select':
+      case "select":
         return `${indent(2)}<SelectFieldWrapper\n${indent(
           4
         )}name="${fieldName}"\n${indent(4)}label="${label}"\n${indent(
@@ -57,7 +57,7 @@ export const generateFormCodeFromConfig = (config: any): string => {
           4
         )}${placeholder}\n${indent(4)}${helperText}\n${indent(2)}/>`;
 
-      case 'boolean':
+      case "boolean":
         return `${indent(2)}<FieldWrapper\n${indent(
           4
         )}key="${fieldName}"\n${indent(4)}label="${label}"\n${indent(
@@ -78,7 +78,7 @@ export const generateFormCodeFromConfig = (config: any): string => {
           6
         )}/>\n${indent(4)}}\n${indent(2)}/>`;
 
-      case 'radio':
+      case "radio":
         return `${indent(2)}<FieldWrapper\n${indent(
           4
         )}key="${fieldName}"\n${indent(4)}label="${label}"\n${indent(
@@ -99,13 +99,13 @@ export const generateFormCodeFromConfig = (config: any): string => {
           8
         )})}\n${indent(6)}/>\n${indent(4)}}\n${indent(2)}/>`;
 
-      case 'array':
+      case "array":
         if (field.fields && field.fields.length > 0) {
           const nestedFields = field.fields
-            .map((subField) =>
+            .map((subField: any) =>
               generateFieldCode(subField, `${fieldName}[\${index}]`)
             )
-            .join('\n\n');
+            .join("\n\n");
           return `${indent(2)}{/* Array Field: ${label} */}\n${indent(
             2
           )}{fields.${field.name}.map((item, index) => (\n${indent(
@@ -142,7 +142,7 @@ export const generateFormCodeFromConfig = (config: any): string => {
 
   const fieldsCode = config.fields
     .map((field: any) => generateFieldCode(field))
-    .join('\n\n');
+    .join("\n\n");
 
   return `import { Input, Textarea, Checkbox, Box } from "@chakra-ui/react";\nimport { FieldWrapper } from "./FieldWrapper";\nimport { SelectFieldWrapper } from "./SelectFieldWrapper";\nimport { Controller } from "react-hook-form";\n\nconst Form = ({ register, control, formState, fields }) => (\n${indent()}<form>\n${fieldsCode}\n${indent()}</form>\n);\n\nexport default Form;`;
 };
